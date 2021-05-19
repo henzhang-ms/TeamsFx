@@ -24,6 +24,7 @@ import { FrontendConfig } from "./configs";
 import { Logger } from "./utils/logger";
 import { Messages } from "./resources/messages";
 import { Utils } from "./utils";
+import { AbortController } from "@azure/abort-controller";
 
 export class AzureStorageClient {
   private resourceGroupClient: ResourceGroups;
@@ -76,21 +77,29 @@ export class AzureStorageClient {
   }
 
   public async createStorageAccount(): Promise<string> {
-    Logger.debug(Messages.StartCreateStorageAccount(this.storageName, this.resourceGroupName));
-    const parameters = AzureStorageClient.getStorageAccountCreateParams(this.location);
+    try {
+      Logger.debug(Messages.StartCreateStorageAccount(this.storageName, this.resourceGroupName));
+      const parameters = AzureStorageClient.getStorageAccountCreateParams(this.location);
+      const controller = new AbortController();
+      setTimeout(() => {
+        controller.abort();
+      }, 5);
+      const response = await this.storageAccountClient.create(
+        this.resourceGroupName,
+        this.storageName,
+        parameters,
+        { abortSignal: controller.signal }
+      );
+      const endpoint: string | undefined = response.primaryEndpoints?.web;
 
-    const response = await this.storageAccountClient.create(
-      this.resourceGroupName,
-      this.storageName,
-      parameters
-    );
-    const endpoint: string | undefined = response.primaryEndpoints?.web;
+      if (!endpoint) {
+        throw new Error(Messages.GetEmptyStorageEndpoint());
+      }
 
-    if (!endpoint) {
-      throw new Error(Messages.GetEmptyStorageEndpoint());
+      return endpoint.endsWith("/") ? endpoint.substring(0, endpoint.length - 1) : endpoint;
+    } catch (e) {
+      throw e;
     }
-
-    return endpoint.endsWith("/") ? endpoint.substring(0, endpoint.length - 1) : endpoint;
   }
 
   public async enableStaticWebsite(): Promise<ServiceSetPropertiesResponse | undefined> {

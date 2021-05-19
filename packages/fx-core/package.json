@@ -25,6 +25,7 @@
   },
   "dependencies": {
     "@apidevtools/swagger-parser": "^10.0.2",
+    "@azure/abort-controller": "^1.0.4",
     "@azure/arm-apimanagement": "^6.0.0",
     "@azure/arm-appservice": "^7.0.0",
     "@azure/arm-botservice": "^2.0.0",

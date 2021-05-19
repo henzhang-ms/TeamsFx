@@ -14,6 +14,7 @@ import {
 } from "./errors";
 import { ResultFactory } from "./result";
 import { DialogUtils } from "./utils/dialog";
+import { AbortController } from "@azure/abort-controller";
 
 export class WebAppClient {
   private credentials: TokenCredentialsBase;
@@ -50,6 +51,10 @@ export class WebAppClient {
   public async createWebApp(): Promise<string> {
     try {
       DialogUtils.progressBar?.next(Constants.ProgressBar.provision.createAppServicePlan);
+      const controller = new AbortController();
+      setTimeout(() => {
+        controller.abort();
+      }, 10);
       const appServicePlan = await this.webSiteManagementClient.appServicePlans.createOrUpdate(
         this.resourceGroupName,
         this.appServicePlanName,
@@ -58,7 +63,8 @@ export class WebAppClient {
           sku: {
             name: this.getSkuName(),
           },
-        }
+        },
+        { abortSignal: controller.signal }
       );
       this.ctx.logProvider?.info(
         Messages.getLog("appServicePlan is created: " + appServicePlan.name)
