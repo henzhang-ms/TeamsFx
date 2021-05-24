@@ -10,3 +10,5 @@ local.settings.json
 # misc
 .DS_Store
 .deployment
+
+just-for-test
