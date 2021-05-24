@@ -41,41 +41,31 @@ jobs:
           git config --global user.name 'MSFT-yiz'
           git config --global user.email 'yiz@microsoft.com'
 
-          
-      - name: Generate Template Zip Files
-        run: .github/scripts/template-zip-autogen.sh ${{ github.ref }}
+      - name: generate templates
+        run: .github/scripts/template-zip-autogen.sh
 
-      - name: release daily npm packages to npmjs.org
+      - name: release templates' daily version to github
         if: ${{ github.ref == 'refs/heads/dev' && startsWith(github.event.inputs.version, 'pre') }}
-        run: |
-          git tag --force templates@0.0.0-daily
-          git push origin --force templates@0.0.0-daily
-        
-      - name: release daily templates
-        if: ${{ github.ref == 'refs/heads/dev' && startsWith(github.event.inputs.version, 'pre') }}
-        uses: ncipollo/release-action@v1.7.3
+        uses: marvinpinto/action-automatic-releases@latest
         with:
-          artifacts: ./*.zip
-          name: 'Release for templates 0.0.0-daily'
-          token: ${{ secrets.github_token }}
-          tag: '0.0.0-alpha'
-          allowUpdates: true
+          repo_token: ${{ secrets.GITHUB_TOKEN  }}
+          prerelease: true
+          automatic_release_tag: "templates@0.0.0-daily"
+          files: |
+            ./*.zip
 
-      - name: release rc npm packages to npmjs.org
+      - name: release templates' prerelease version to github
         if: ${{ startsWith(github.ref, 'refs/heads/release/') && github.event.inputs.version == 'prerelease' }}
-        run: |
-          git tag --force templates@0.0.0-alpha
-          git push origin --force templates@0.0.0-alpha
-          
-      - name: release prerelease templates
-        if: ${{ startsWith(github.ref, 'refs/heads/release/') && github.event.inputs.version == 'prerelease' }}
-        uses: ncipollo/release-action@v1.7.3
+        uses: marvinpinto/action-automatic-releases@latest
         with:
-          artifacts: ./*.zip
-          name: 'Release for templates 0.0.0-alpha'
-          token: ${{ secrets.github_token }}
-          tag: '0.0.0-alpha'
-          allowUpdates: true
+          repo_token: ${{ secrets.GITHUB_TOKEN  }}
+          prerelease: true
+          automatic_release_tag: "templates@0.0.0-alpha"
+          files: |
+            ./*.zip
+
+      - name: cleanup templates
+        run: rm -rf ./*.zip
 
       - name: cleanup templates
         run: |
