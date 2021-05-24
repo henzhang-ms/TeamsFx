@@ -79,11 +79,15 @@ jobs:
         if: ${{ github.ref == 'refs/heads/dev' && startsWith(github.event.inputs.version, 'pre') }}
         run: |
           npx lerna publish --no-private --preid=alpha --dist-tag=alpha ${{ github.event.inputs.version }} --yes ${{ github.event.inputs.force }}
+          git tag --force templates@0.0.0-daily
+          git push origin --force templates@0.0.0-daily
 
       - name: release rc npm packages to npmjs.org
         if: ${{ startsWith(github.ref, 'refs/heads/release/') && github.event.inputs.version == 'prerelease' }}
         run: |
           npx lerna publish --no-private --preid=rc --dist-tag=rc prerelease --yes ${{ github.event.inputs.force }}
+          git tag --force templates@0.0.0-alpha
+          git push origin --force templates@0.0.0-alpha
 
       - name: release stable npm packages to npmjs.org
         if: ${{ startsWith(github.ref, 'refs/heads/release/') && !startsWith(github.event.inputs.version, 'pre') }}
